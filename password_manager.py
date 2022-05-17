@@ -1,19 +1,30 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import StringVar, messagebox
 from tkinter import filedialog
-from tkinter import ttk             
+from tkinter import ttk
+from tkinter.font import NORMAL             
 from PIL import ImageTk, Image
 import pymysql
 import os
 import shutil
 import password_db_config
-
+from encrypt_pass import *
+from generate_pass import *
 
 #test dog cat mouse rat cow
 
 
 
 # functions
+def connect():
+    con = pymysql.connect(host=password_db_config.DB_SERVER,
+                                user=password_db_config.DB_USER,
+                                password=password_db_config.DB_PASS,
+                                database=password_db_config.DB,
+                                port=password_db_config.DB_PORT)
+    return con
+
+
 def on_tab_selected(event):
     selected_tab = event.widget.select()
     tab_text = event.widget.tab(selected_tab, "text")
@@ -25,11 +36,107 @@ def on_tab_selected(event):
         print("Update Old Account tab selected")
     if tab_text == "Delete Old Account":
         print("Delete Old Account tab selected")
+    clear()
+    
+
+# may be deleted start
+def load_database_results():
+    global rows
+    global num_of_rows
+
+    try:
+        con = connect()
+        sql = "SELECT * FROM accounts"
+        cur = con.cursor()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        num_of_rows = cur.rowcount
+        cur.close()
+        con.close()
+        has_loaded_successfully = True
+        # messagebox.showinfo("Connected to Database", "Connected OK")
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+        has_loaded_successfully = database_error(e)
+
+    return has_loaded_successfully
+# may be deleted end
+
+def database_error(err):
+    messagebox.showinfo("Error", err)
+    return False
+
+def clear():
+    tab = tab_parent.select()
+    print(tab)
+    if tab == ".!notebook.!frame2":
+        add_website.set("")
+        add_username.set("")
+        add_password.set("")
+        addWebEntry.focus()
+    if tab == ".!notebook.!frame3":
+        update_website.set("")
+        update_username.set("")
+        update_old_password.set("")
+        update_new_password.set("")       
+        updateWebEntry.focus()
+        
+
+def generate_password():
+    password = randomPass(characters)
+    tab = tab_parent.select()
+    if tab == ".!notebook.!frame2":
+        add_password.set(password)
+    if tab == ".!notebook.!frame3":
+        update_new_password.set(password)
+
+def add_new_account():
+    if add_website.get() == "" or add_username.get() == "" or add_password.get() == "":
+        messagebox.showerror("Error", "Please fill in all fields")
+        
+    else:
+        messagebox.showinfo("Success","New Account Added to Database")
+        encryptMe = encrypt(add_password.get(), shift)
+        try:
+            con = connect()
+            cur = con.cursor()
+            sql = """insert into `accounts` (website, username, password) values (%s, %s, %s)"""
+            cur.execute(sql,(add_website.get(), add_username.get(), encryptMe))
+            con.commit()
+        except pymysql.InternalError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.OperationalError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.ProgrammingError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.DataError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.IntegrityError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.NotSupportedError as e:
+            has_loaded_successfully = database_error(e)
+        except pymysql.DatabaseError as e:
+            has_loaded_successfully = database_error(e)
+        clear()
 
 # variables
 
 file_name = "default.png"
 path = password_db_config.PHOTO_DIRECTORY + file_name
+rows = None # may be removed
+num_of_rows = None # may be removed
+shift = 5
 
 # main window
 
@@ -54,6 +161,21 @@ tab_parent.add(tab4, text="Delete Old Account")
 tab_parent.pack(expand=1, fill='both')
 
 # ===WIDGETS===
+add_website = StringVar()
+add_username = StringVar()
+add_password = StringVar()
+add_website.set("")
+add_username.set("")
+add_password.set("")
+update_website = StringVar()
+update_username = StringVar()
+update_old_password = StringVar()
+update_new_password = StringVar()
+update_website.set("")
+update_username.set("")
+update_old_password.set("")
+update_new_password.set("")
+
 
 # tab1
 openImageTabOne = Image.open(path)
@@ -65,12 +187,12 @@ addAppLabel = tk.Label(tab2, text="Website/Application:")
 addUserLabel = tk.Label(tab2, text="Username:")
 addPasswordLabel = tk.Label(tab2, text="Password:")
 
-addWebEntry = tk.Entry(tab2)
-addUserEntry = tk.Entry(tab2)
-addPasswordEntry = tk.Entry(tab2)
+addWebEntry = tk.Entry(tab2, textvariable=add_website, state=NORMAL)
+addUserEntry = tk.Entry(tab2, textvariable=add_username, state=NORMAL)
+addPasswordEntry = tk.Entry(tab2, textvariable=add_password, state=NORMAL)
 
-buttonGenerate = tk.Button(tab2, text="Generate")
-buttonAdd = tk.Button(tab2, text="Add")
+buttonGenerate = tk.Button(tab2, text="Generate", command=generate_password)
+buttonAdd = tk.Button(tab2, text="Add", command=add_new_account)
 
 # tab3
 updateAppLabel = tk.Label(tab3, text="Website/Application:")
@@ -78,12 +200,12 @@ updateUserLabel = tk.Label(tab3, text="Username:")
 updateOldPasswordLabel = tk.Label(tab3, text="Old Password:")
 updateNewPasswordLabel = tk.Label(tab3, text="New Password:")
 
-updateWebEntry = tk.Entry(tab3)
-updateUserEntry = tk.Entry(tab3)
-updateOldPasswordEntry = tk.Entry(tab3)
-updateNewPasswordEntry = tk.Entry(tab3)
+updateWebEntry = tk.Entry(tab3, textvariable=update_website, state=NORMAL)
+updateUserEntry = tk.Entry(tab3, textvariable=update_username, state=NORMAL)
+updateOldPasswordEntry = tk.Entry(tab3, textvariable=update_old_password, state=NORMAL)
+updateNewPasswordEntry = tk.Entry(tab3, textvariable=update_new_password, state=NORMAL)
 
-buttonGenerate2 = tk.Button(tab3, text="Generate")
+buttonGenerate2 = tk.Button(tab3, text="Generate", command=generate_password)
 buttonUpdate = tk.Button(tab3, text="Update")
 
 # tab4
@@ -138,4 +260,7 @@ delUserEntry.grid(row=1, column=1, padx=15, pady=15)
 
 buttonDel.grid(row=3, column=2, padx=15, pady=15)
 
+
+
+success = load_database_results() #may be removed
 mywindow.mainloop() #You must add this at the end to show the window
