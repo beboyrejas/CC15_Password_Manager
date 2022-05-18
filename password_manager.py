@@ -91,7 +91,10 @@ def clear():
         update_old_password.set("")
         update_new_password.set("")       
         updateWebEntry.focus()
-        
+    if tab == ".!notebook.!frame4":
+        delete_website.set("")
+        delete_username.set("")
+        delWebEntry.focus()
 
 def generate_password():
     password = randomPass(characters)
@@ -129,6 +132,39 @@ def add_new_account():
         except pymysql.DatabaseError as e:
             has_loaded_successfully = database_error(e)
         clear()
+
+def delete_account():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = "select * from accounts where website = %s and username = %s"
+        cur.execute(sql, (delete_website.get(), delete_username.get()))
+        if cur.fetchone():
+            deleteChoice = messagebox.askyesno("Success","Account Deleted from Database")
+            if deleteChoice > 0:
+                sql = """Delete from `accounts` where website = %s and username = %s"""
+                cur.execute(sql, (delete_website.get(), delete_username.get())) 
+            messagebox.showinfo("Success","Account Deleted from Database")
+        else :
+            messagebox.showerror("Error","Account Does Not Exist in Database")
+        con.commit()
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+    
+    
+       
 
 # variables
 
@@ -175,6 +211,10 @@ update_website.set("")
 update_username.set("")
 update_old_password.set("")
 update_new_password.set("")
+delete_website = StringVar()
+delete_username = StringVar()
+delete_website.set("")
+delete_username.set("")
 
 
 # tab1
@@ -212,10 +252,10 @@ buttonUpdate = tk.Button(tab3, text="Update")
 delAppLabel = tk.Label(tab4, text="Website/Application:")
 delUserLabel = tk.Label(tab4, text="Username:")
 
-delWebEntry = tk.Entry(tab4)
-delUserEntry = tk.Entry(tab4)
+delWebEntry = tk.Entry(tab4, textvariable=delete_website, state=NORMAL)
+delUserEntry = tk.Entry(tab4, textvariable=delete_username, state=NORMAL)
 
-buttonDel = tk.Button(tab4, text="Delete")
+buttonDel = tk.Button(tab4, text="Delete", command=delete_account)
 
 # ===ADD WIDGETS TO TABS===
 
