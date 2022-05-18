@@ -173,7 +173,12 @@ def update_account():
             sql = """Select password from `accounts` where website = %s and username = %s"""
             cur.execute(sql, (update_website.get(), update_username.get()))
             old_password = cur.fetchone()
-            update_old_password.set(decrypt(old_password[0], shift))
+            if decrypt(old_password[0], shift) == update_new_password.get():
+                messagebox.showerror("Error","New Password Cannot be the Same as Old Password")
+                return
+            if update_new_password.get() == "":
+                messagebox.showerror("Error","Please Enter a New Password")
+                return
             updateChoice = messagebox.askyesno("Warning","Are You Sure You Want to Change the Password for this Account?")
             if updateChoice > 0:
                 encryptMe = encrypt(update_new_password.get(), shift)
@@ -206,6 +211,37 @@ def call_pass(event):
         cur.execute(sql, (update_website.get(), update_username.get()))
         old_password = cur.fetchone() 
         update_old_password.set(decrypt(old_password[0], shift))
+        con.commit()
+    except TypeError as e:
+        messagebox.showerror("Error","Please Fill Out All Fields")
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+
+def conditional_search():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select * from `accounts` where website = %s"""
+        cur.execute(sql, (search_website.get()))
+        if cur.fetchone():
+            sql = """Select * from `accounts` where website = %s"""
+            cur.execute(sql, (search_website.get()))
+            for i in cur.fetchall():
+                tree.insert("", 0, values=(i))
+        else :
+            messagebox.showerror("Error","Account Does Not Exist in Database")
         con.commit()
     except pymysql.InternalError as e:
         has_loaded_successfully = database_error(e)
@@ -253,6 +289,10 @@ tab_parent.add(tab4, text="Delete Old Account")
 tab_parent.pack(expand=1, fill='both')
 
 # ===WIDGETS===
+search_website = StringVar()
+search_username = StringVar()
+search_website.set("")
+search_username.set("")
 add_website = StringVar()
 add_username = StringVar()
 add_password = StringVar()
@@ -273,10 +313,66 @@ delete_website.set("")
 delete_username.set("")
 
 
-# tab1
-openImageTabOne = Image.open(path)
-imgTabOne = ImageTk.PhotoImage(openImageTabOne)
-imgLabelTabOne = tk.Label(tab1, image=imgTabOne)
+# ===TAB 1===
+# create a frame for the tab 1 with a fixed height and color and anchored at top
+tab1_frame = tk.Frame(tab1, height=100, width=400, borderwidth=1)
+tab1_frame.pack(expand=1, fill='x', anchor='n')
+
+scrollbar = ttk.Scrollbar(tab1_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+tree = ttk.Treeview(tab1_frame, height=8, columns=("Website", "Username", "Password"), show="headings", yscrollcommand=scrollbar.set)
+tree.column("Website", width=100, anchor="center")
+tree.column("Username", width=100, anchor="center")
+tree.column("Password", width=100, anchor="center")
+tree.heading("Website", text="Website")
+tree.heading("Username", text="Username")
+tree.heading("Password", text="Password")
+tree.pack(expand=1, fill='x')
+
+scrollbar.config(command=tree.yview)
+
+
+tab1_frame2 = tk.Frame(tab1, height=100, width=400, borderwidth=1)
+tab1_frame2.pack(expand=1, fill='x', anchor='n')
+# create entry boxes for the tab1_frame2
+searchWebLabel = tk.Label(tab1_frame2, text="Website:")
+searchUsernameLabel = tk.Label(tab1_frame2, text="Username:")
+
+searchWebEntry = tk.Entry(tab1_frame2, textvariable=search_website, width=17)
+searchUsernameEntry = tk.Entry(tab1_frame2, textvariable=search_username, width=17)
+searchWebLabel.grid(row=0, column=0, sticky="n", padx=5, pady=5)
+searchUsernameLabel.grid(row=0, column=2, sticky="n", padx=5, pady=5)
+searchWebEntry.grid(row=0, column=1, sticky="n", padx=5, pady=5)
+searchUsernameEntry.grid(row=0, column=3, sticky="n", padx=5, pady=5)
+
+# create a button for the tab1_frame2 below the entry boxes
+searchButton = tk.Button(tab1_frame2, text="Search", command=conditional_search)
+searchButton.grid(row=0, column=4, sticky="n", padx=5, pady=5)
+
+
+# insert into table test cases
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "fish", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "flush"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+tree.insert("", 0, values=("Website", "Username", "Password"))
+
 
 # tab2
 addAppLabel = tk.Label(tab2, text="Website/Application:")
@@ -302,6 +398,7 @@ updateOldPasswordEntry = tk.Entry(tab3, textvariable=update_old_password, state=
 updateNewPasswordEntry = tk.Entry(tab3, textvariable=update_new_password, state=NORMAL)
 updateNewPasswordEntry.bind("<1>",call_pass)
 
+
 buttonGenerate2 = tk.Button(tab3, text="Generate", command=generate_password)
 buttonUpdate = tk.Button(tab3, text="Update", command=update_account)
 
@@ -317,7 +414,7 @@ buttonDel = tk.Button(tab4, text="Delete", command=delete_account)
 # ===ADD WIDGETS TO TABS===
 
 # tab1
-imgLabelTabOne.grid(row=0, column=2, rowspan=3, padx=15, pady=15)
+
 
 # tab2
 addAppLabel.grid(row=0, column=0, padx=15, pady=15)
