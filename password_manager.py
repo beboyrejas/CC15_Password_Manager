@@ -80,6 +80,9 @@ def database_error(err):
 def clear():
     tab = tab_parent.select()
     print(tab)
+    if tab == ".!notebook.!frame":
+        search_website.set("")
+        search_username.set("")
     if tab == ".!notebook.!frame2":
         add_website.set("")
         add_username.set("")
@@ -117,6 +120,8 @@ def add_new_account():
             sql = """insert into `accounts` (website, username, password) values (%s, %s, %s)"""
             cur.execute(sql,(add_website.get(), add_username.get(), encryptMe))
             con.commit()
+            cur.close()
+            con.close()
         except pymysql.InternalError as e:
             has_loaded_successfully = database_error(e)
         except pymysql.OperationalError as e:
@@ -132,6 +137,7 @@ def add_new_account():
         except pymysql.DatabaseError as e:
             has_loaded_successfully = database_error(e)
         clear()
+    return
 
 def delete_account():
     try:
@@ -148,6 +154,8 @@ def delete_account():
         else :
             messagebox.showerror("Error","Account Does Not Exist in Database")
         con.commit()
+        cur.close()
+        con.close()
     except pymysql.InternalError as e:
         has_loaded_successfully = database_error(e)
     except pymysql.OperationalError as e:
@@ -162,6 +170,8 @@ def delete_account():
         has_loaded_successfully = database_error(e)
     except pymysql.DatabaseError as e:
        has_loaded_successfully = database_error(e)
+    return
+
     
 def update_account():
     try:
@@ -188,6 +198,8 @@ def update_account():
         else :
             messagebox.showerror("Error","Account Does Not Exist in Database")
         con.commit()
+        cur.close()
+        con.close()
     except pymysql.InternalError as e:
         has_loaded_successfully = database_error(e)
     except pymysql.OperationalError as e:
@@ -202,6 +214,7 @@ def update_account():
         has_loaded_successfully = database_error(e)
     except pymysql.DatabaseError as e:
        has_loaded_successfully = database_error(e)
+    return
 
 def call_pass(event):
     try:
@@ -230,6 +243,18 @@ def call_pass(event):
        has_loaded_successfully = database_error(e)
 
 def conditional_search():
+    clear_treeview()
+    if search_website.get() != "" and search_username.get() == "":
+        website_search()
+    elif search_website.get() == "" and search_username.get() != "":
+        username_search()
+    elif search_website.get() != "" and search_username.get() != "":
+        website_username_search()
+    else:
+        messagebox.showerror("Error","Please Enter a Search Term")  
+    return
+
+def website_search():
     try:
         con = connect()
         cur = con.cursor()
@@ -239,10 +264,13 @@ def conditional_search():
             sql = """Select * from `accounts` where website = %s"""
             cur.execute(sql, (search_website.get()))
             for i in cur.fetchall():
-                tree.insert("", 0, values=(i))
+                tree.insert("", 0, values=(i[0],i[1],decrypt(i[2], shift)))
+            clear()
         else :
             messagebox.showerror("Error","Account Does Not Exist in Database")
         con.commit()
+        cur.close()
+        con.close()
     except pymysql.InternalError as e:
         has_loaded_successfully = database_error(e)
     except pymysql.OperationalError as e:
@@ -257,6 +285,107 @@ def conditional_search():
         has_loaded_successfully = database_error(e)
     except pymysql.DatabaseError as e:
        has_loaded_successfully = database_error(e)
+    return
+
+def username_search():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select * from `accounts` where username = %s"""
+        cur.execute(sql, (search_username.get()))
+        if cur.fetchone():
+            sql = """Select * from `accounts` where username = %s"""
+            cur.execute(sql, (search_username.get()))
+            for i in cur.fetchall():
+                tree.insert("", 0, values=(i[0],i[1],decrypt(i[2], shift)))
+            clear()
+        else :
+            messagebox.showerror("Error","Account Does Not Exist in Database")
+        con.commit()
+        cur.close()
+        con.close()
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+    return
+
+def website_username_search():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select * from `accounts` where website = %s and username = %s"""
+        cur.execute(sql, (search_website.get(), search_username.get()))
+        if cur.fetchone():
+            sql = """Select * from `accounts` where website = %s and username = %s"""
+            cur.execute(sql, (search_website.get(), search_username.get()))
+            for i in cur.fetchall():
+                tree.insert("", 0, values=(i[0],i[1],decrypt(i[2], shift)))
+            clear()
+        else :
+            messagebox.showerror("Error","Account Does Not Exist in Database")
+        con.commit()
+        cur.close()
+        con.close()
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+    return
+
+# function to check if account already exists
+def check_account():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select * from `accounts` where website = %s and username = %s"""
+        cur.execute(sql, (add_website.get(), add_username.get()))
+        if cur.fetchone():
+            messagebox.showerror("Error","Account Already Exists")
+            return False
+        else:
+            add_new_account()
+            return True
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+    return
+
+# function to clear treeview
+def clear_treeview():
+    tree.delete(*tree.get_children())
+    return
 
 # variables
 
@@ -351,29 +480,6 @@ searchButton = tk.Button(tab1_frame2, text="Search", command=conditional_search)
 searchButton.grid(row=0, column=4, sticky="n", padx=5, pady=5)
 
 
-# insert into table test cases
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "fish", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "flush"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-tree.insert("", 0, values=("Website", "Username", "Password"))
-
-
 # tab2
 addAppLabel = tk.Label(tab2, text="Website/Application:")
 addUserLabel = tk.Label(tab2, text="Username:")
@@ -384,7 +490,7 @@ addUserEntry = tk.Entry(tab2, textvariable=add_username, state=NORMAL)
 addPasswordEntry = tk.Entry(tab2, textvariable=add_password, state=NORMAL)
 
 buttonGenerate = tk.Button(tab2, text="Generate", command=generate_password)
-buttonAdd = tk.Button(tab2, text="Add", command=add_new_account)
+buttonAdd = tk.Button(tab2, text="Add", command=check_account)
 
 # tab3
 updateAppLabel = tk.Label(tab3, text="Website/Application:")
