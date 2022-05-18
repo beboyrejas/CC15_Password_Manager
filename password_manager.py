@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import StringVar, messagebox
+from tkinter import DISABLED, StringVar, messagebox
 from tkinter import filedialog
 from tkinter import ttk
 from tkinter.font import NORMAL             
@@ -140,11 +140,11 @@ def delete_account():
         sql = "select * from accounts where website = %s and username = %s"
         cur.execute(sql, (delete_website.get(), delete_username.get()))
         if cur.fetchone():
-            deleteChoice = messagebox.askyesno("Success","Account Deleted from Database")
+            deleteChoice = messagebox.askyesno("Warning","Are You Sure You Want to Delete this Account?")
             if deleteChoice > 0:
                 sql = """Delete from `accounts` where website = %s and username = %s"""
                 cur.execute(sql, (delete_website.get(), delete_username.get())) 
-            messagebox.showinfo("Success","Account Deleted from Database")
+                messagebox.showinfo("Success","Account Deleted from Database")
         else :
             messagebox.showerror("Error","Account Does Not Exist in Database")
         con.commit()
@@ -163,8 +163,64 @@ def delete_account():
     except pymysql.DatabaseError as e:
        has_loaded_successfully = database_error(e)
     
-    
-       
+def update_account():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = "select * from accounts where website = %s and username = %s"
+        cur.execute(sql, (update_website.get(), update_username.get()))
+        if cur.fetchone():
+            sql = """Select password from `accounts` where website = %s and username = %s"""
+            cur.execute(sql, (update_website.get(), update_username.get()))
+            old_password = cur.fetchone()
+            update_old_password.set(decrypt(old_password[0], shift))
+            updateChoice = messagebox.askyesno("Warning","Are You Sure You Want to Change the Password for this Account?")
+            if updateChoice > 0:
+                encryptMe = encrypt(update_new_password.get(), shift)
+                sql = """Update `accounts` set password = %s where website = %s and username = %s"""
+                cur.execute(sql, (encryptMe, update_website.get(), update_username.get()))
+                messagebox.showinfo("Success","Account Updated in Database")
+        else :
+            messagebox.showerror("Error","Account Does Not Exist in Database")
+        con.commit()
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
+
+def call_pass(event):
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select password from `accounts` where website = %s and username = %s"""
+        cur.execute(sql, (update_website.get(), update_username.get()))
+        old_password = cur.fetchone() 
+        update_old_password.set(decrypt(old_password[0], shift))
+        con.commit()
+    except pymysql.InternalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.OperationalError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.ProgrammingError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DataError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.IntegrityError as e:
+       has_loaded_successfully = database_error(e)
+    except pymysql.NotSupportedError as e:
+        has_loaded_successfully = database_error(e)
+    except pymysql.DatabaseError as e:
+       has_loaded_successfully = database_error(e)
 
 # variables
 
@@ -242,11 +298,12 @@ updateNewPasswordLabel = tk.Label(tab3, text="New Password:")
 
 updateWebEntry = tk.Entry(tab3, textvariable=update_website, state=NORMAL)
 updateUserEntry = tk.Entry(tab3, textvariable=update_username, state=NORMAL)
-updateOldPasswordEntry = tk.Entry(tab3, textvariable=update_old_password, state=NORMAL)
+updateOldPasswordEntry = tk.Entry(tab3, textvariable=update_old_password, state=DISABLED)
 updateNewPasswordEntry = tk.Entry(tab3, textvariable=update_new_password, state=NORMAL)
+updateNewPasswordEntry.bind("<1>",call_pass)
 
 buttonGenerate2 = tk.Button(tab3, text="Generate", command=generate_password)
-buttonUpdate = tk.Button(tab3, text="Update")
+buttonUpdate = tk.Button(tab3, text="Update", command=update_account)
 
 # tab4
 delAppLabel = tk.Label(tab4, text="Website/Application:")
