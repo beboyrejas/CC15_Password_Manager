@@ -33,6 +33,7 @@ def on_tab_selected(event):
         print("Delete Old Account tab selected")
     clear()
 
+
 # may be deleted start
 def load_database_results():
     global rows
@@ -116,19 +117,11 @@ def add_new_account():
             con.commit()
             cur.close()
             con.close()
-        except pymysql.InternalError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.OperationalError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.ProgrammingError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.DataError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.IntegrityError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.NotSupportedError as e:
-            has_loaded_successfully = database_error(e)
-        except pymysql.DatabaseError as e:
+        except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
             has_loaded_successfully = database_error(e)
         clear()
     return
@@ -150,20 +143,13 @@ def delete_account():
         con.commit()
         cur.close()
         con.close()
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
+    clear()
     return
 
     
@@ -194,20 +180,13 @@ def update_account():
         con.commit()
         cur.close()
         con.close()
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
+    clear()
     return
 
 def call_pass(event):
@@ -219,22 +198,12 @@ def call_pass(event):
         old_password = cur.fetchone() 
         update_old_password.set(decrypt(old_password[0], shift))
         con.commit()
-    except TypeError as e:
-        messagebox.showerror("Error","Please Fill Out All Fields")
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
 
 def conditional_search():
     clear_treeview()
@@ -265,20 +234,12 @@ def website_search():
         con.commit()
         cur.close()
         con.close()
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
     return
 
 def username_search():
@@ -298,20 +259,12 @@ def username_search():
         con.commit()
         cur.close()
         con.close()
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
     return
 
 def website_username_search():
@@ -331,20 +284,12 @@ def website_username_search():
         con.commit()
         cur.close()
         con.close()
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
     return
 
 # function to check if account already exists
@@ -360,20 +305,12 @@ def check_account():
         else:
             add_new_account()
             return True
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-       has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-       has_loaded_successfully = database_error(e)
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+            has_loaded_successfully = database_error(e)
     return
 
 # function to clear treeview
