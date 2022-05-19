@@ -11,10 +11,6 @@ import password_db_config
 from encrypt_pass import *
 from generate_pass import *
 
-#test dog cat mouse rat cow
-
-
-
 # functions
 def connect():
     con = pymysql.connect(host=password_db_config.DB_SERVER,
@@ -23,7 +19,6 @@ def connect():
                                 database=password_db_config.DB,
                                 port=password_db_config.DB_PORT)
     return con
-
 
 def on_tab_selected(event):
     selected_tab = event.widget.select()
@@ -37,7 +32,6 @@ def on_tab_selected(event):
     if tab_text == "Delete Old Account":
         print("Delete Old Account tab selected")
     clear()
-    
 
 # may be deleted start
 def load_database_results():
