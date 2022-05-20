@@ -11,6 +11,8 @@ import password_db_config
 from encrypt_pass import *
 from generate_pass import *
 
+# pull test
+
 # functions
 def connect():
     con = pymysql.connect(host=password_db_config.DB_SERVER,
@@ -151,7 +153,6 @@ def delete_account():
             has_loaded_successfully = database_error(e)
     clear()
     return
-
     
 def update_account():
     try:
@@ -393,7 +394,7 @@ tree.pack(expand=1, fill='x')
 scrollbar.config(command=tree.yview)
 
 
-tab1_frame2 = tk.Frame(tab1, height=100, width=400, borderwidth=1)
+tab1_frame2 = tk.LabelFrame(tab1, height=100, width=400, borderwidth=1, text="Search")
 tab1_frame2.pack(expand=1, fill='x', anchor='n')
 # create entry boxes for the tab1_frame2
 searchWebLabel = tk.Label(tab1_frame2, text="Website:")
