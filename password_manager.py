@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import DISABLED, StringVar, messagebox
 from tkinter import filedialog
 from tkinter import ttk
-from tkinter.font import NORMAL             
+from tkinter.font import NORMAL
+from unicodedata import digit             
 from PIL import ImageTk, Image
 import pymysql
 import os
@@ -34,6 +35,9 @@ def on_tab_selected(event):
     if tab_text == "Delete Old Account":
         print("Delete Old Account tab selected")
     clear()
+
+
+
 
 
 # may be deleted start
@@ -103,6 +107,8 @@ def generate_password():
         add_password.set(password)
     if tab == ".!notebook.!frame3":
         update_new_password.set(password)
+
+        
 
 def add_new_account():
     if add_website.get() == "" or add_username.get() == "" or add_password.get() == "":
@@ -334,6 +340,8 @@ mywindow.title("Password Manager") #This will be the window title
 mywindow.geometry("430x280") #This will be the window size (str)
 mywindow.minsize(430, 280) #This will be set a limit for the window's minimum size (int)
 mywindow.configure(bg="grey") #This will be the background color
+mywindow.resizable(False, False)
+
 
 # ===TABS===
 
