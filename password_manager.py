@@ -2,14 +2,14 @@ import tkinter as tk
 from tkinter import DISABLED, StringVar, messagebox
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import Menu
 from tkinter.font import NORMAL             
-from PIL import ImageTk, Image
 import pymysql
-import os
-import shutil
 import password_db_config
 from encrypt_pass import *
 from generate_pass import *
+import datetime
+
 
 # pull test
 
@@ -34,41 +34,7 @@ def on_tab_selected(event):
     if tab_text == "Delete Old Account":
         print("Delete Old Account tab selected")
     clear()
-
-
-# may be deleted start
-def load_database_results():
-    global rows
-    global num_of_rows
-
-    try:
-        con = connect()
-        sql = "SELECT * FROM accounts"
-        cur = con.cursor()
-        cur.execute(sql)
-        rows = cur.fetchall()
-        num_of_rows = cur.rowcount
-        cur.close()
-        con.close()
-        has_loaded_successfully = True
-        # messagebox.showinfo("Connected to Database", "Connected OK")
-    except pymysql.InternalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.OperationalError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.ProgrammingError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DataError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.IntegrityError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.NotSupportedError as e:
-        has_loaded_successfully = database_error(e)
-    except pymysql.DatabaseError as e:
-        has_loaded_successfully = database_error(e)
-
-    return has_loaded_successfully
-# may be deleted end
+    clear_treeview()
 
 def database_error(err):
     messagebox.showinfo("Error", err)
@@ -115,7 +81,7 @@ def add_new_account():
             con = connect()
             cur = con.cursor()
             sql = """insert into `accounts` (website, username, password) values (%s, %s, %s)"""
-            cur.execute(sql,(add_website.get(), add_username.get(), encryptMe))
+            cur.execute(sql,(add_website.get().lower(), add_username.get(), encryptMe))
             con.commit()
             cur.close()
             con.close()
@@ -129,64 +95,70 @@ def add_new_account():
     return
 
 def delete_account():
-    try:
-        con = connect()
-        cur = con.cursor()
-        sql = "select * from accounts where website = %s and username = %s"
-        cur.execute(sql, (delete_website.get(), delete_username.get()))
-        if cur.fetchone():
-            deleteChoice = messagebox.askyesno("Warning","Are You Sure You Want to Delete this Account?")
-            if deleteChoice > 0:
-                sql = """Delete from `accounts` where website = %s and username = %s"""
-                cur.execute(sql, (delete_website.get(), delete_username.get())) 
-                messagebox.showinfo("Success","Account Deleted from Database")
-        else :
-            messagebox.showerror("Error","Account Does Not Exist in Database")
-        con.commit()
-        cur.close()
-        con.close()
-    except (pymysql.InternalError, pymysql.OperationalError, 
-                pymysql.DataError, 
-                pymysql.IntegrityError, 
-                pymysql.NotSupportedError,  
-                pymysql.DatabaseError) as e:
-            has_loaded_successfully = database_error(e)
-    clear()
+    if delete_website.get() == "" or delete_username.get() == "":
+        messagebox.showerror("Error", "Please fill in all fields")
+    else:
+        try:
+            con = connect()
+            cur = con.cursor()
+            sql = "select * from accounts where website = %s and username = %s"
+            cur.execute(sql, (delete_website.get().lower(), delete_username.get()))
+            if cur.fetchone():
+                deleteChoice = messagebox.askyesno("Warning","Are You Sure You Want to Delete this Account?")
+                if deleteChoice > 0:
+                    sql = """Delete from `accounts` where website = %s and username = %s"""
+                    cur.execute(sql, (delete_website.get().lower(), delete_username.get())) 
+                    messagebox.showinfo("Success","Account Deleted from Database")
+            else :
+                messagebox.showerror("Error","Account Does Not Exist in Database")
+            con.commit()
+            cur.close()
+            con.close()
+        except (pymysql.InternalError, pymysql.OperationalError, 
+                    pymysql.DataError, 
+                    pymysql.IntegrityError, 
+                    pymysql.NotSupportedError,  
+                    pymysql.DatabaseError) as e:
+                has_loaded_successfully = database_error(e)
+        clear()
     return
     
 def update_account():
-    try:
-        con = connect()
-        cur = con.cursor()
-        sql = "select * from accounts where website = %s and username = %s"
-        cur.execute(sql, (update_website.get(), update_username.get()))
-        if cur.fetchone():
-            sql = """Select password from `accounts` where website = %s and username = %s"""
-            cur.execute(sql, (update_website.get(), update_username.get()))
-            old_password = cur.fetchone()
-            if decrypt(old_password[0], shift) == update_new_password.get():
-                messagebox.showerror("Error","New Password Cannot be the Same as Old Password")
-                return
-            if update_new_password.get() == "":
-                messagebox.showerror("Error","Please Enter a New Password")
-                return
-            updateChoice = messagebox.askyesno("Warning","Are You Sure You Want to Change the Password for this Account?")
-            if updateChoice > 0:
-                encryptMe = encrypt(update_new_password.get(), shift)
-                sql = """Update `accounts` set password = %s where website = %s and username = %s"""
-                cur.execute(sql, (encryptMe, update_website.get(), update_username.get()))
-                messagebox.showinfo("Success","Account Updated in Database")
-        else :
-            messagebox.showerror("Error","Account Does Not Exist in Database")
-        con.commit()
-        cur.close()
-        con.close()
-    except (pymysql.InternalError, pymysql.OperationalError, 
-                pymysql.DataError, 
-                pymysql.IntegrityError, 
-                pymysql.NotSupportedError,  
-                pymysql.DatabaseError) as e:
-            has_loaded_successfully = database_error(e)
+    if update_website.get() == "" or update_username.get() == "":
+        messagebox.showerror("Error", "Please fill in all fields")
+    else:
+        try:
+            con = connect()
+            cur = con.cursor()
+            sql = "select * from accounts where website = %s and username = %s"
+            cur.execute(sql, (update_website.get().lower(), update_username.get()))
+            if cur.fetchone():
+                sql = """Select password from `accounts` where website = %s and username = %s"""
+                cur.execute(sql, (update_website.get().lower(), update_username.get()))
+                old_password = cur.fetchone()
+                if decrypt(old_password[0], shift) == update_new_password.get():
+                    messagebox.showerror("Error","New Password Cannot be the Same as Old Password")
+                    return
+                if update_new_password.get() == "":
+                    messagebox.showerror("Error","Please Enter a New Password")
+                    return
+                updateChoice = messagebox.askyesno("Warning","Are You Sure You Want to Change the Password for this Account?")
+                if updateChoice > 0:
+                    encryptMe = encrypt(update_new_password.get(), shift)
+                    sql = """Update `accounts` set password = %s where website = %s and username = %s"""
+                    cur.execute(sql, (encryptMe, update_website.get().lower(), update_username.get()))
+                    messagebox.showinfo("Success","Account Updated in Database")
+            else :
+                messagebox.showerror("Error","Account Does Not Exist in Database")
+            con.commit()
+            cur.close()
+            con.close()
+        except (pymysql.InternalError, pymysql.OperationalError, 
+                    pymysql.DataError, 
+                    pymysql.IntegrityError, 
+                    pymysql.NotSupportedError,  
+                    pymysql.DatabaseError) as e:
+                has_loaded_successfully = database_error(e)
     clear()
     return
 
@@ -319,12 +291,67 @@ def clear_treeview():
     tree.delete(*tree.get_children())
     return
 
-# variables
+# create a function to save treeview to a text file
+def save_treeview():
+    file = filedialog.asksaveasfile(mode='w', defaultextension=".txt", filetypes=[('Text File', '*.txt')], initialfile="accounts.txt")
+    if file is None:
+        return
+    for item in tree.get_children():
+        file.write(tree.item(item, "values")[0]+"\t"+tree.item(item, "values")[1]+"\t"+tree.item(item, "values")[2]+"\n")
+    file.close()
+    return
 
-file_name = "default.png"
-path = password_db_config.PHOTO_DIRECTORY + file_name
-rows = None # may be removed
-num_of_rows = None # may be removed
+# create a function to load treeview from a text file
+def load_treeview():
+    file = filedialog.askopenfile(mode='r', defaultextension=".txt", filetypes=[('Text File', '*.txt')])
+    if file is None:
+        return
+    clear_treeview()
+    for line in file:
+        line = line.rstrip()
+        website, username, password = line.split("\t")
+        tree.insert("", 0, values=(website, username, password))
+    file.close()
+    return
+
+def export_accounts():
+    try:
+        con = connect()
+        cur = con.cursor()
+        sql = """Select * from `accounts`"""
+        cur.execute(sql)
+        if cur.fetchone():
+            file = filedialog.asksaveasfile(mode='w', defaultextension=".txt", filetypes=[('Text File', '*.txt')], initialfile="all_accounts.txt")
+            if file is None: # asksaveasfile return `None` if dialog closed with "cancel".
+                return
+            for i in cur.fetchall():
+                file.write(i[0] + " | " + i[1] + " | " + decrypt(i[2], shift) + "\n")
+            file.close()
+        else:
+            messagebox.showerror("Error","No Accounts to Save")
+        con.commit()
+        cur.close()
+        con.close()
+    except (pymysql.InternalError, pymysql.OperationalError, 
+                pymysql.DataError, 
+                pymysql.IntegrityError, 
+                pymysql.NotSupportedError,  
+                pymysql.DatabaseError) as e:
+        has_loaded_successfully = database_error(e)
+    return
+
+# function to show message about the program
+def about():
+    messagebox.showinfo("About", "\n\n" +
+                                "Created for CC15 by \n\n" +
+                                "Montano, George Jose P.\n\n" +
+                                "Rejas, Raymond.\n\n" +
+                                "Palmere, Mark Elson.\n\n" +
+                                "Rejas, Raymond.\n\n" +
+                                "and Alaiza, Michael Don")
+    
+
+# variables
 shift = 5
 
 # main window
@@ -334,7 +361,21 @@ mywindow.title("Password Manager") #This will be the window title
 mywindow.geometry("430x280") #This will be the window size (str)
 mywindow.minsize(430, 280) #This will be set a limit for the window's minimum size (int)
 mywindow.configure(bg="grey") #This will be the background color
+mywindow.resizable(0,0) #This will disable the ability to resize the window
 
+
+menubar = Menu(mywindow)
+filemenu = Menu(menubar, tearoff=0)
+filemenu.add_command(label="Load to Current Account Search", command=load_treeview)
+filemenu.add_command(label="Save Current Account Search", command=save_treeview)
+filemenu.add_command(label="Export All Accounts", command=export_accounts)
+filemenu.add_separator()
+filemenu.add_command(label="Exit", command=mywindow.quit)
+menubar.add_cascade(label="File", menu=filemenu)
+
+helpmenu = Menu(menubar, tearoff=0)
+helpmenu.add_command(label="About...", command=about)
+menubar.add_cascade(label="Help", menu=helpmenu)
 # ===TABS===
 
 tab_parent = ttk.Notebook(mywindow)
@@ -435,6 +476,7 @@ updateUserEntry = tk.Entry(tab3, textvariable=update_username, state=NORMAL)
 updateOldPasswordEntry = tk.Entry(tab3, textvariable=update_old_password, state=DISABLED)
 updateNewPasswordEntry = tk.Entry(tab3, textvariable=update_new_password, state=NORMAL)
 updateNewPasswordEntry.bind("<1>",call_pass)
+updateUserEntry.bind("<Tab>",call_pass)
 
 
 buttonGenerate2 = tk.Button(tab3, text="Generate", command=generate_password)
@@ -492,7 +534,5 @@ delUserEntry.grid(row=1, column=1, padx=15, pady=15)
 
 buttonDel.grid(row=3, column=2, padx=15, pady=15)
 
-
-
-success = load_database_results() #may be removed
+mywindow.config(menu=menubar)
 mywindow.mainloop() #You must add this at the end to show the window
